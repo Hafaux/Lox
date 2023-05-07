@@ -241,7 +241,7 @@ class Scanner {
       return;
     }
 
-    // The closing "
+    // The closing quote
     advance();
 
     String value = source.substring(start + 1, current - 1);
