@@ -1,4 +1,4 @@
-## Language Interpreter written in Java
+## Language Interpreter
 
 Following along with the [Crafting Interpreters](https://craftinginterpreters.com/) book.
 
