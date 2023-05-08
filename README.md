@@ -57,5 +57,5 @@ unary -> ( "!" | "-" ) unary | primary ;
 primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
 ```
 
-[^1]: Letter from the grammar's alphabet. Tokens like `==`, `if`, `1234`, etc.\
+[^1]: Letter from the grammar's alphabet. Tokens like `==`, `if`, `1234`, etc.
 [^2]: Named reference to another rule in the grammar. "Use" the rule and insert whatever it produces in its place.
