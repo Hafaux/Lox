@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 class Parser {
@@ -11,14 +12,69 @@ class Parser {
     this.tokens = tokens;
   }
 
-  Expr parse() {
+  List<Stmt> parse() {
+    List<Stmt> statemens = new ArrayList<>();
+
     try {
-      return expression();
+      while (!isAtEnd()) {
+        statemens.add(declaration());
+      }
+    } catch (ParseError error) {
+      return null;
+    }
+
+    return statemens;
+  }
+
+  private Stmt declaration() {
+    try {
+      if (match(TokenType.VAR)) {
+        return varDeclaration();
+      }
+
+      return statement();
     } catch (ParseError error) {
       synchronize();
 
       return null;
     }
+  }
+
+  private Stmt varDeclaration() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+    Expr initializer = null;
+
+    if (match(TokenType.EQUAL)) {
+      initializer = expression();
+    }
+
+    consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+
+    return new Stmt.Var(name, initializer);
+  }
+
+  private Stmt statement() {
+    if (match(TokenType.PRINT))
+      return printStatement();
+
+    return expressionStatement();
+  }
+
+  private Stmt printStatement() {
+    Expr value = expression();
+
+    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+
+    return new Stmt.Print(value);
+  }
+
+  private Stmt expressionStatement() {
+    Expr expr = expression();
+
+    consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+
+    return new Stmt.Expression(expr);
   }
 
   // expression -> equality ;
@@ -100,6 +156,10 @@ class Parser {
 
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(previous().literal);
+    }
+
+    if (match(TokenType.IDENTIFIER)) {
+      return new Expr.Variable(previous());
     }
 
     if (match(TokenType.LEFT_PAREN)) {
