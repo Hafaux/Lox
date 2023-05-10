@@ -13,8 +13,32 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 
+  public void interpretExpr(Expr expression) {
+    try {
+      Object value = evaluate(expression);
+
+      System.out.println(stringify(value));
+    } catch (RuntimeError error) {
+      Lox.runtimeError(error);
+    }
+  }
+
   private void execute(Stmt statement) {
     statement.accept(this);
+  }
+
+  private void executeBlock(List<Stmt> statements, Environment environment) {
+    Environment previous = this.environment;
+
+    try {
+      this.environment = environment;
+
+      for (Stmt statement : statements) {
+        execute(statement);
+      }
+    } finally {
+      this.environment = previous;
+    }
   }
 
   public Object visitLiteralExpr(Expr.Literal expr) {
@@ -173,7 +197,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   public Object visitAssignExpr(Expr.Assign expr) {
-    return null;
+    Object value = evaluate(expr.value);
+
+    environment.assign(expr.name, value);
+
+    return value;
   }
 
   public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -202,6 +230,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   public Void visitBlockStmt(Stmt.Block stmt) {
+    executeBlock(stmt.statements, new Environment(environment));
+
     return null;
   }
 

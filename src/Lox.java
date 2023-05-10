@@ -15,7 +15,9 @@ public class Lox {
     if (args.length > 1) {
       System.out.println("Usage: jlox [script]");
       System.exit(64);
-    } else if (args.length == 1) {
+    }
+
+    if (args.length == 1) {
       runFile(args[0]);
     } else {
       runPrompt();
@@ -53,6 +55,27 @@ public class Lox {
     List<Token> tokens = scanner.scanTokens();
 
     Parser parser = new Parser(tokens);
+
+    if (tokens.stream().anyMatch(token -> token.type == TokenType.SEMICOLON)) {
+      interpretStmts(parser);
+
+      return;
+    }
+
+    interpretExpr(parser);
+  }
+
+  static void interpretExpr(Parser parser) {
+    Expr expression = parser.parseExpr();
+
+    // Stop if there was a syntax error.
+    if (hadError)
+      return;
+
+    interpreter.interpretExpr(expression);
+  }
+
+  static void interpretStmts(Parser parser) {
 
     List<Stmt> statements = parser.parse();
 
