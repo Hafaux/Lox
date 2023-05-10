@@ -13,17 +13,17 @@ class Parser {
   }
 
   List<Stmt> parse() {
-    List<Stmt> statemens = new ArrayList<>();
+    List<Stmt> statements = new ArrayList<>();
 
     try {
       while (!isAtEnd()) {
-        statemens.add(declaration());
+        statements.add(declaration());
       }
     } catch (ParseError error) {
       return null;
     }
 
-    return statemens;
+    return statements;
   }
 
   Expr parseExpr() {
