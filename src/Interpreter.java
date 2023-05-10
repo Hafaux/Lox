@@ -193,7 +193,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   public Object visitLogicalExpr(Expr.Logical expr) {
-    return null;
+    Object left = evaluate(expr.left);
+
+    if (expr.operator.type == TokenType.OR) {
+      if (isTruthy(left))
+        return left;
+    } else {
+      if (!isTruthy(left))
+        return left;
+    }
+
+    return evaluate(expr.right);
   }
 
   public Object visitAssignExpr(Expr.Assign expr) {
@@ -236,10 +246,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   public Void visitIfStmt(Stmt.If stmt) {
+    if (isTruthy(evaluate(stmt.condition)))
+      execute(stmt.thenBranch);
+    else if (stmt.elseBranch != null)
+      execute(stmt.elseBranch);
+
     return null;
   }
 
   public Void visitWhileStmt(Stmt.While stmt) {
+    while (isTruthy(evaluate(stmt.condition))) {
+      execute(stmt.body);
+    }
+
     return null;
   }
 
