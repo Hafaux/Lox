@@ -24,6 +24,21 @@ public class Lox {
     }
   }
 
+  private static void run(String source) {
+    Scanner scanner = new Scanner(source);
+    List<Token> tokens = scanner.scanTokens();
+
+    Parser parser = new Parser(tokens);
+
+    if (tokens.stream().anyMatch(token -> token.type == TokenType.SEMICOLON)) {
+      interpretStmts(parser);
+
+      return;
+    }
+
+    interpretExpr(parser);
+  }
+
   private static void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
 
@@ -50,21 +65,6 @@ public class Lox {
     }
   }
 
-  private static void run(String source) {
-    Scanner scanner = new Scanner(source);
-    List<Token> tokens = scanner.scanTokens();
-
-    Parser parser = new Parser(tokens);
-
-    if (tokens.stream().anyMatch(token -> token.type == TokenType.SEMICOLON)) {
-      interpretStmts(parser);
-
-      return;
-    }
-
-    interpretExpr(parser);
-  }
-
   static void interpretExpr(Parser parser) {
     Expr expression = parser.parseExpr();
 
@@ -80,6 +80,14 @@ public class Lox {
     List<Stmt> statements = parser.parse();
 
     // Stop if there was a syntax error.
+    if (hadError)
+      return;
+
+    Resolver resolver = new Resolver(interpreter);
+
+    resolver.resolve(statements);
+
+    // Stop if there was a resolution error.
     if (hadError)
       return;
 
