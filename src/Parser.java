@@ -37,6 +37,9 @@ class Parser {
 
   private Stmt declaration() {
     try {
+      if (match(TokenType.FUN)) {
+        return function("function");
+      }
       if (match(TokenType.VAR)) {
         return varDeclaration();
       }
@@ -49,7 +52,33 @@ class Parser {
     }
   }
 
-  private Stmt varDeclaration() {
+  private Stmt.Function function(String kind) {
+    Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+
+    consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+    List<Token> parameters = new ArrayList<>();
+
+    if (!check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.size() >= 255) {
+          error(peek(), "Can't have more than 255 parameters.");
+        }
+
+        parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+      } while (match(TokenType.COMMA));
+    }
+
+    consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+
+    List<Stmt> body = block();
+
+    return new Stmt.Function(name, parameters, body);
+  }
+
+  private Stmt.Var varDeclaration() {
     Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
 
     Expr initializer = null;
@@ -76,10 +105,26 @@ class Parser {
     if (match(TokenType.PRINT))
       return printStatement();
 
+    if (match(TokenType.RETURN))
+      return returnStatement();
+
     if (match(TokenType.LEFT_BRACE))
       return new Stmt.Block(block());
 
     return expressionStatement();
+  }
+
+  private Stmt returnStatement() {
+    Token keyword = previous();
+    Expr value = null;
+
+    if (!check(TokenType.SEMICOLON)) {
+      value = expression();
+    }
+
+    consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+
+    return new Stmt.Return(keyword, value);
   }
 
   private Stmt forStatement() {
@@ -127,7 +172,7 @@ class Parser {
     return body;
   }
 
-  private Stmt whileStatement() {
+  private Stmt.While whileStatement() {
     consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
 
     Expr condition = expression();
@@ -139,7 +184,7 @@ class Parser {
     return new Stmt.While(condition, body);
   }
 
-  private Stmt ifStatement() {
+  private Stmt.If ifStatement() {
     consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
 
     Expr condition = expression();
@@ -168,7 +213,7 @@ class Parser {
     return statements;
   }
 
-  private Stmt printStatement() {
+  private Stmt.Print printStatement() {
     Expr value = expression();
 
     consume(TokenType.SEMICOLON, "Expect ';' after value.");
@@ -176,7 +221,7 @@ class Parser {
     return new Stmt.Print(value);
   }
 
-  private Stmt expressionStatement() {
+  private Stmt.Expression expressionStatement() {
     Expr expr = expression();
 
     consume(TokenType.SEMICOLON, "Expect ';' after expression.");
@@ -214,6 +259,7 @@ class Parser {
     while (match(TokenType.OR)) {
       Token operator = previous();
       Expr right = and();
+
       expr = new Expr.Logical(expr, operator, right);
     }
 
@@ -240,6 +286,7 @@ class Parser {
     while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
       Token operator = previous();
       Expr right = comparison();
+
       expr = new Expr.Binary(expr, operator, right);
     }
 
@@ -253,6 +300,7 @@ class Parser {
     while (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
       Token operator = previous();
       Expr right = term();
+
       expr = new Expr.Binary(expr, operator, right);
     }
 
@@ -266,6 +314,7 @@ class Parser {
     while (match(TokenType.MINUS, TokenType.PLUS)) {
       Token operator = previous();
       Expr right = factor();
+
       expr = new Expr.Binary(expr, operator, right);
     }
 
@@ -279,6 +328,7 @@ class Parser {
     while (match(TokenType.SLASH, TokenType.STAR)) {
       Token operator = previous();
       Expr right = unary();
+
       expr = new Expr.Binary(expr, operator, right);
     }
 
@@ -290,10 +340,44 @@ class Parser {
     if (match(TokenType.BANG, TokenType.MINUS)) {
       Token operator = previous();
       Expr right = unary();
+
       return new Expr.Unary(operator, right);
     }
 
-    return primary();
+    return call();
+  }
+
+  // call -> primary ( "(" arguments? ")" )* ;
+  private Expr call() throws ParseError {
+    Expr expr = primary();
+
+    while (true) {
+      if (match(TokenType.LEFT_PAREN)) {
+        expr = finishCall(expr);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
+  }
+
+  private Expr finishCall(Expr expr) {
+    List<Expr> arguments = new ArrayList<>();
+
+    if (!check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (arguments.size() >= 255) {
+          error(peek(), "Can't have more than 255 arguments.");
+        }
+
+        arguments.add(expression());
+      } while (match(TokenType.COMMA));
+    }
+
+    Token paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+
+    return new Expr.Call(expr, paren, arguments);
   }
 
   // primary -> NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" ;
