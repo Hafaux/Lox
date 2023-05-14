@@ -197,10 +197,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 
-  public Object visitThisExpr(Expr.This expr) {
-    return null;
-  }
-
   public Object visitSetExpr(Expr.Set expr) {
     Object object = evaluate(expr.object);
 
@@ -251,7 +247,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return lookUpVariable(expr.name, expr);
   }
 
-  private Object lookUpVariable(Token name, Expr.Variable expr) {
+  public Object visitThisExpr(Expr.This expr) {
+    return lookUpVariable(expr.keyword, expr);
+  }
+
+  private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);
 
     if (distance != null) {

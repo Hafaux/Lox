@@ -11,3 +11,16 @@ var cream = DevonshireCream();
 print cream; // Instance of the 'DevonshireCream' class
 
 print cream.serveOn();
+
+class Rectangle {
+  area() {
+    return this.width * this.height;
+  }
+}
+
+var rect = Rectangle();
+
+rect.width = 5;
+rect.height = 10;
+
+print rect.area(); // 50

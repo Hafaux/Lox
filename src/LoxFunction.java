@@ -28,4 +28,12 @@ public class LoxFunction implements LoxCallable {
 
     return null;
   }
+
+  public Object bind(LoxInstance loxInstance) {
+    Environment environment = new Environment(this.closure);
+
+    environment.define("this", loxInstance);
+
+    return new LoxFunction(declaration, environment);
+  }
 }
