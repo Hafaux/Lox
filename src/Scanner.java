@@ -119,12 +119,13 @@ class Scanner {
         addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
         break;
       case '/':
-        if (match('/'))
+        if (match('/')) {
           lineComment();
-        else if (match('*'))
+        } else if (match('*')) {
           blockComment();
-        else
+        } else {
           addToken(TokenType.SLASH);
+        }
 
         break;
 
@@ -150,24 +151,29 @@ class Scanner {
         } else {
           Lox.error(line, "Unexpected character.");
         }
+
         break;
     }
   }
 
   private void lineComment() {
-    while (peek() != '\n' && !isAtEnd())
+    while (peek() != '\n' && !isAtEnd()) {
       advance();
+    }
   }
 
   private void blockComment() {
     while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
-      if (peek() == '\n')
+      if (peek() == '\n') {
         line++;
+      }
+
       advance();
     }
 
     if (isAtEnd()) {
       Lox.error(line, "Unterminated block comment.");
+
       return;
     }
 
@@ -177,8 +183,9 @@ class Scanner {
   }
 
   private void identifier() {
-    while (isAlphaNumeric(peek()))
+    while (isAlphaNumeric(peek())) {
       advance();
+    }
 
     String text = source.substring(start, current);
 
@@ -201,8 +208,9 @@ class Scanner {
   }
 
   private void number() {
-    while (isDigit(peek()))
+    while (isDigit(peek())) {
       advance();
+    }
 
     if (peek() == '.' && isDigit(peekNext())) {
       // Consume the "."
@@ -218,8 +226,9 @@ class Scanner {
   }
 
   private char peekNext() {
-    if (current + 1 >= source.length())
+    if (current + 1 >= source.length()) {
       return '\0';
+    }
 
     return source.charAt(current + 1);
   }
@@ -250,8 +259,9 @@ class Scanner {
   }
 
   private char peek() {
-    if (isAtEnd())
+    if (isAtEnd()) {
       return '\0';
+    }
 
     return source.charAt(current);
   }

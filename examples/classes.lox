@@ -24,3 +24,29 @@ rect.width = 5;
 rect.height = 10;
 
 print rect.area(); // 50
+
+// Initializers
+class Car {
+  init() {
+    this._gasLevel = 0;
+  }
+
+  fillGas(amount) {
+    this._gasLevel = this._gasLevel + amount;
+  }
+
+  gasLevel() {
+    return this._gasLevel;
+  }
+}
+
+var car = Car();
+
+car.fillGas(10);
+
+print car.gasLevel(); // 10
+
+car.fillGas(50);
+
+print car.gasLevel(); // 60
+
