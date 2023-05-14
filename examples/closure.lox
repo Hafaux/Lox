@@ -1,9 +1,9 @@
-fun makeCounter() {
+fn makeCounter() {
   var i = 0;
   
-  fun count() {
+  fn count() {
     i = i + 1;
-    print i;
+    print(i)
   }
 
   return count;

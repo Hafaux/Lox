@@ -1,5 +1,5 @@
-fun sayHi(first, last) {
-  print "Hello, " + first + " " + last + "."; 
+fn sayHi(first, last) {
+  print("Hello, " + first + " " + last + "."); 
 }
 
 sayHi("John", "Doe");

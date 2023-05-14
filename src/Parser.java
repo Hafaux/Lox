@@ -40,7 +40,7 @@ class Parser {
       if (match(TokenType.CLASS)) {
         return classDeclaration();
       }
-      if (match(TokenType.FUN)) {
+      if (match(TokenType.FN)) {
         return function("function");
       }
       if (match(TokenType.VAR)) {
@@ -59,6 +59,12 @@ class Parser {
     Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
 
     Expr.Variable superclass = null;
+
+    if (match(TokenType.EXTENDS)) {
+      consume(TokenType.IDENTIFIER, "Expect superclass name");
+
+      superclass = new Expr.Variable(previous());
+    }
 
     consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
@@ -122,9 +128,6 @@ class Parser {
 
     if (match(TokenType.IF))
       return ifStatement();
-
-    if (match(TokenType.PRINT))
-      return printStatement();
 
     if (match(TokenType.RETURN))
       return returnStatement();
@@ -232,14 +235,6 @@ class Parser {
     consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
 
     return statements;
-  }
-
-  private Stmt.Print printStatement() {
-    Expr value = expression();
-
-    consume(TokenType.SEMICOLON, "Expect ';' after value.");
-
-    return new Stmt.Print(value);
   }
 
   private Stmt.Expression expressionStatement() {
@@ -463,12 +458,11 @@ class Parser {
 
       switch (peek().type) {
         case CLASS:
-        case FUN:
+        case FN:
         case VAR:
         case FOR:
         case IF:
         case WHILE:
-        case PRINT:
         case RETURN:
           return;
 

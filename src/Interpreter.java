@@ -22,6 +22,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return "<native fn>";
       }
     });
+
+    globals.define("print", new LoxCallable() {
+      public int arity() {
+        return 1;
+      }
+
+      public Object call(Interpreter interpreter, List<Object> arguments) {
+        System.out.println(stringify(arguments.get(0)));
+
+        return null;
+      }
+
+      public String toString() {
+        return "<native fn>";
+      }
+    });
   }
 
   public void interpret(List<Stmt> expression) {
@@ -295,14 +311,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 
-  public Void visitPrintStmt(Stmt.Print stmt) {
-    Object value = evaluate(stmt.expression);
-
-    System.out.println(stringify(value));
-
-    return null;
-  }
-
   public Void visitVarStmt(Stmt.Var stmt) {
     Object value = null;
 
@@ -355,6 +363,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   public Void visitClassStmt(Stmt.Class stmt) {
+    Object superclass = null;
+
+    if (stmt.superclass != null) {
+      superclass = evaluate(stmt.superclass);
+
+      if (!(superclass instanceof LoxClass)) {
+        throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+      }
+    }
+
     environment.define(stmt.name.lexeme, null);
 
     Map<String, LoxFunction> methods = new HashMap<>();
@@ -365,7 +383,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       methods.put(method.name.lexeme, function);
     }
 
-    LoxClass loxClass = new LoxClass(stmt.name.lexeme, methods);
+    LoxClass loxClass = new LoxClass(stmt.name.lexeme, (LoxClass) superclass, methods);
 
     environment.assign(stmt.name, loxClass);
 

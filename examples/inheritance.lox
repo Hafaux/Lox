@@ -1,0 +1,37 @@
+class GameObject {
+  init(health) {
+    this.health = health;
+    this.alive = true;
+  }
+}
+
+class Player extends GameObject {
+  shoot(enemy) {
+    print("Pew pew");
+
+    enemy.updateHealth(enemy.health - 10);
+  }
+}
+
+class Enemy extends GameObject {
+  updateHealth(newHealth) {
+    this.health = newHealth;
+
+    if (this.health <= 0) {
+      this.die();
+    }
+  }
+
+  die() {
+    this.alive = false;
+
+    print("Aaargh!");
+  }
+}
+
+var player = Player(100);
+var enemy = Enemy(50);
+
+while (enemy.alive) {
+  player.shoot(enemy);
+}

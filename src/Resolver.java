@@ -157,12 +157,6 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-  public Void visitPrintStmt(Stmt.Print stmt) {
-    resolve(stmt.expression);
-
-    return null;
-  }
-
   public Void visitReturnStmt(Stmt.Return stmt) {
     if (currentFunction == FunctionType.NONE) {
       Lox.error(stmt.keyword, "Cannot return from top-level code.");
@@ -230,7 +224,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     declare(stmt.name);
     define(stmt.name);
 
+    if (stmt.superclass != null) {
+      if (stmt.superclass.name.lexeme.equals(stmt.name.lexeme)) {
+        Lox.error(stmt.name, "A class cannot inherit from itself.");
+      }
+
+      resolve(stmt.superclass);
+    }
+
     beginScope();
+
     scopes.peek().put("this", true);
 
     for (Stmt.Function method : stmt.methods) {

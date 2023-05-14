@@ -4,13 +4,12 @@ class DevonshireCream {
   }
 }
 
-print DevonshireCream; // 'DevonshireCream' class
+print(DevonshireCream); // 'DevonshireCream' class
 
 var cream = DevonshireCream();
 
-print cream; // Instance of the 'DevonshireCream' class
-
-print cream.serveOn();
+print(cream); // Instance of the 'DevonshireCream' class
+print(cream.serveOn());
 
 class Rectangle {
   area() {
@@ -23,7 +22,7 @@ var rect = Rectangle();
 rect.width = 5;
 rect.height = 10;
 
-print rect.area(); // 50
+print(rect.area()); // 50
 
 // Initializers
 class Car {
@@ -44,9 +43,9 @@ var car = Car();
 
 car.fillGas(10);
 
-print car.gasLevel(); // 10
+print(car.gasLevel()); // 10
 
 car.fillGas(50);
 
-print car.gasLevel(); // 60
+print(car.gasLevel()); // 60
 
