@@ -4,4 +4,10 @@ class DevonshireCream {
   }
 }
 
-print DevonshireCream;
+print DevonshireCream; // 'DevonshireCream' class
+
+var cream = DevonshireCream();
+
+print cream; // Instance of the 'DevonshireCream' class
+
+print cream.serveOn();
