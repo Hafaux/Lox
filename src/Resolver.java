@@ -10,10 +10,17 @@ enum FunctionType {
   INITIALIZER
 }
 
+enum ClassType {
+  NONE,
+  CLASS,
+  SUBCLASS
+}
+
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Interpreter interpreter;
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private FunctionType currentFunction = FunctionType.NONE;
+  private ClassType currentClass = ClassType.NONE;
 
   Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
@@ -221,6 +228,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   public Void visitClassStmt(Stmt.Class stmt) {
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType.CLASS;
+
     declare(stmt.name);
     define(stmt.name);
 
@@ -229,7 +239,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         Lox.error(stmt.name, "A class cannot inherit from itself.");
       }
 
+      currentClass = ClassType.SUBCLASS;
+
       resolve(stmt.superclass);
+
+      beginScope();
+      scopes.peek().put("super", true);
     }
 
     beginScope();
@@ -243,6 +258,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     endScope();
+
+    if (stmt.superclass != null) {
+      endScope();
+    }
+
+    currentClass = enclosingClass;
 
     return null;
   }
@@ -261,12 +282,24 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   public Void visitThisExpr(Expr.This expr) {
-    resolveLocal(expr, expr.keyword);
+    if (currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Cannot use 'this' outside of a class.");
+    } else {
+      resolveLocal(expr, expr.keyword);
+    }
 
     return null;
   }
 
   public Void visitSuperExpr(Expr.Super expr) {
+    if (currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Cannot use 'super' outside of a class.");
+    } else if (currentClass != ClassType.SUBCLASS) {
+      Lox.error(expr.keyword, "Cannot use 'super' in a class with no superclass.");
+    } else {
+      resolveLocal(expr, expr.keyword);
+    }
+
     return null;
   }
 }
